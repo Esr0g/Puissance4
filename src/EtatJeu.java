@@ -8,7 +8,7 @@ public class EtatJeu {
 
     // Joueur qui doit jouer
     private int joueur;
-    private final char plateau[][];
+    private final char[][] plateau;
     private boolean quitter = false;
     private FinDePartie etatFin = FinDePartie.NON;
 
@@ -20,6 +20,21 @@ public class EtatJeu {
                 this.plateau[i][j] = ' ';
             }
         }
+    }
+
+    public EtatJeu copy() {
+        EtatJeu copie = new EtatJeu(this.joueur);
+
+        for (int i = 0 ; i < plateau.length; i++) {
+            for (int j = 0; j < plateau[i].length; j++) {
+                copie.setCase(i, j, plateau[i][j]);
+            }
+        }
+        return copie;
+    }
+
+    private void setCase(int l, int c, char p) {
+        this.plateau[l][c] = p;
     }
 
     public String afficher() {
@@ -202,7 +217,40 @@ public class EtatJeu {
         jouerCoup(cps.get(choix));
     }
 
+    private void MCTS_UTC(Node n) {
+        if (n.getNbPassage() == 0 && n.getMu() == 0) {
+
+        }
+    }
+
     public boolean joueurJoue() {
         return this.joueur == 0;
+    }
+
+    private int evaluate() {
+        switch (this.etatFin) {
+            case ORDI_GAGNE:
+                return 1;
+            case MATCHNUL:
+            case HUMAIN_GAGNE:
+                return 0;
+        }
+
+        return 0;
+    }
+
+    public int simulate(EtatJeu ej) {
+        EtatJeu simul = ej.copy();
+        int i = 0;
+
+        do {
+            List<Coup> cps = simul.coupPossible();
+            Random rand = new Random();
+            int choix = rand.nextInt(cps.size());
+            simul.jouerCoup(cps.get(choix));
+            simul.testFin();
+        } while(!simul.estTermine());
+
+        return simul.evaluate();
     }
 }
