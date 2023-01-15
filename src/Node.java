@@ -1,41 +1,44 @@
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.math.BigDecimal;
+import java.util.*;
 
 public class Node implements Iterable<Node> {
 
     // Joueur qui a joué pour arriver ici
     private int joureur;
     // Coup joué par ce joueur pour arriver ici
-    private EtatJeu coup;
+    private EtatJeu etat;
     private final Node parent;
     private List<Node> enfants;
-    private int nbPassage = 0;
-    private double mu = 0;
+    private double nbPassage = 0;
+    private double nbVictoire = 0;
+    // Par défaut un noeu est explorable mais si toutes ses branche sont une fin de partie
+    // il n'est alors pas nécessaire d'aller dedans
+    private boolean explorable = true;
 
-    public Node(Node parent) {
+    public Node(Node parent, EtatJeu etat) {
         this.parent = parent;
         this.enfants = new ArrayList<>();
+        this.etat = etat;
     }
 
     public void ajouterEnfant(Node enfant) {
         this.enfants.add(enfant);
     }
 
-    public int getNbPassage() {
+    public double getNbPassage() {
         return nbPassage;
     }
 
-    public double getMu() {
-        return mu;
+    public double getNbVictoire() {
+        return nbVictoire;
     }
 
-    public void setMu(double nm) {
-        mu = nm;
+    public void setNbVictoire(double nm) {
+        nbVictoire = nm;
     }
 
     public void increaseNbPassage() {
-        this.nbPassage++;
+        this.nbPassage += 1;
     }
 
     public Node getParent() {
@@ -46,4 +49,72 @@ public class Node implements Iterable<Node> {
     public Iterator<Node> iterator() {
         return enfants.iterator();
     }
+
+    public EtatJeu getEtat() {
+        return etat;
+    }
+
+    public boolean isFeuille() {
+        return this.enfants.size() == 0;
+    }
+
+    public void sortMax() {
+        this.enfants.sort(new Comparator<Node>() {
+            @Override
+            public int compare(Node node, Node t1) {
+                double B1 = node.getMu() + node.getValRacine();
+                double B2 = t1.getMu() + t1.getValRacine();
+
+                return -Double.compare(B1, B2);
+            }
+        });
+    }
+
+    public void sortMini() {
+        this.enfants.sort(new Comparator<Node>() {
+            @Override
+            public int compare(Node node, Node t1) {
+                double B1 = -node.getMu() + node.getValRacine();
+                double B2 = -t1.getMu() + t1.getValRacine();
+
+                return -Double.compare(B1, B2);
+            }
+        });
+    }
+
+    public Node getEnfant(int i) {
+        return this.enfants.get(i);
+    }
+
+    public void setNbPassage(double x) {
+        this.nbPassage = x;
+    }
+
+    public boolean estExplorable() {
+        return this.explorable;
+    }
+
+    public void finExploration() {
+        this.explorable = false;
+    }
+
+    // Permet de récupéré la partie droite de l'équation dans le cours
+    public double getValRacine() {
+        if (this.getNbPassage() == 0) {
+            return Double.MAX_VALUE;
+        } else {
+            return 2 * Math.sqrt(Math.log(this.getParent().getNbPassage()) / this.getNbPassage());
+        }
+    }
+
+    public double getMu() {
+        if (this.getNbPassage() == 0) {
+            return Double.MAX_VALUE;
+        } else {
+            return (this.getNbVictoire() / this.getNbPassage());
+        }
+    }
 }
+
+
+

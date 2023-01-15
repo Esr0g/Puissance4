@@ -8,9 +8,11 @@ public class EtatJeu {
 
     // Joueur qui doit jouer
     private int joueur;
-    private final char[][] plateau;
+    private char[][] plateau;
     private boolean quitter = false;
     private FinDePartie etatFin = FinDePartie.NON;
+    // Coup qui a été jouer pour arriver dans cet état
+    private Coup coupJoue;
 
     public EtatJeu(int j) {
         this.joueur = j;
@@ -30,6 +32,9 @@ public class EtatJeu {
                 copie.setCase(i, j, plateau[i][j]);
             }
         }
+
+        copie.quitter = this.quitter;
+        copie.etatFin = this.etatFin;
         return copie;
     }
 
@@ -120,10 +125,14 @@ public class EtatJeu {
     public List<Coup> coupPossible() {
         List<Coup> cps = new ArrayList<>();
 
-        for (int j = 0; j < plateau.length; j++) {
-            if (plateau[0][j] == ' ') {
-                cps.add(new Coup(j));
+        if (!estTermine()) {
+            for (int j = 0; j < plateau[0].length; j++) {
+                if (plateau[0][j] == ' ') {
+                    cps.add(new Coup(j));
+                }
             }
+        } else {
+            throw new RuntimeException("Partie terminé coup impossible");
         }
 
         return cps;
@@ -139,7 +148,7 @@ public class EtatJeu {
 
                     // lignes
                     int k = 0;
-                    while( k < 4 && i + k < plateau.length && plateau[i + k][j] == plateau[i][j]) {
+                    while( k < 4 && j + k < plateau[i].length && plateau[i][j + k] == plateau[i][j]) {
                         k++;
                     }
                     if (k == 4) {
@@ -149,7 +158,7 @@ public class EtatJeu {
 
                     // colonnes
                     k = 0;
-                    while (k < 4 && j + k < plateau[i].length && plateau[i][j + k] == plateau[i][j]) {
+                    while (k < 4 && i + k < plateau.length && plateau[i + k][j] == plateau[i][j]) {
                         k++;
                     }
                     if (k == 4) {
@@ -168,7 +177,7 @@ public class EtatJeu {
                     }
 
                     k = 0;
-                    while ( k < 4 && i + k < plateau.length && j - k >= 0 && plateau[i + k][j - k] == plateau[i][j] ) {
+                    while ( k < 4 && i - k >= 0 && j - k >= 0 && plateau[i - k][j - k] == plateau[i][j] ) {
                         k++;
                     }
                     if ( k == 4 ) {
@@ -211,15 +220,108 @@ public class EtatJeu {
     }
 
     public void ordiJoue() {
-        List<Coup> cps = coupPossible();
-        Random rand = new Random();
-        int choix = rand.nextInt(cps.size());
-        jouerCoup(cps.get(choix));
+        long startTime = System.currentTimeMillis();
+        long currenTime = startTime;
+
+        Node racine = new Node(null, this);
+
+        while (currenTime - startTime < 5000) {
+            MCTS_UTC(racine);
+            currenTime = System.currentTimeMillis();
+        }
+
+        System.out.println(racine.getNbPassage());
+        racine.sortMax();
+
+        this.plateau = racine.getEnfant(0).getEtat().plateau;
+        this.joueurSuivant();
     }
 
-    private void MCTS_UTC(Node n) {
-        if (n.getNbPassage() == 0 && n.getMu() == 0) {
+    private int MCTS_UTC(Node n) {
+        if (n.isFeuille()) {
+            // Si il y'a 0 passage on lance une simulation
+            if (n.getNbPassage() == 0 && n.getParent() != null) {
+                int resSimul = 0;
 
+                n.getEtat().testFin();
+
+                if (!n.getEtat().estTermine()) {
+                    resSimul = n.getEtat().simulate(n.getEtat());
+                } else {
+                    resSimul = n.getEtat().evaluate();
+                    n.finExploration();
+                }
+
+                n.increaseNbPassage();
+                n.setNbVictoire(n.getNbVictoire() + resSimul);
+
+                return resSimul;
+            } else {    // Sinon on rajoute un enfant et après on fait une simulation
+                List<Coup> cps = n.getEtat().coupPossible();
+
+                for (Coup cp: cps) {
+                    EtatJeu et = n.getEtat().copy();
+                    et.jouerCoup(cp);
+                    n.ajouterEnfant(new Node(n, et));
+                }
+
+                int res = MCTS_UTC(n.getEnfant(0));
+                n.setNbVictoire(n.getNbVictoire() + res);
+                n.increaseNbPassage();
+
+                return res;
+            }
+            // et simulation
+        } else {
+            if (n.getEtat().joueurJoue()) {
+                // on fait mcts sur min des enfants
+                n.sortMini();
+                int res = -1;
+                boolean finBranche = true;
+
+                for (Node e: n) {
+                    if (e.estExplorable()) {
+                        res = MCTS_UTC(e);
+
+                        if (res >= 0) {
+                            n.increaseNbPassage();
+                            n.setNbVictoire(n.getNbVictoire() + res);
+                            finBranche = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (finBranche) {
+                    n.finExploration();
+                }
+
+                return res;
+            } else {
+                // on fait mcts sur max des enfants
+                n.sortMax();
+                int res = -1;
+                boolean finBranche = true;
+
+                for (Node e: n) {
+                    if (e.estExplorable()) {
+                        res = MCTS_UTC(e);
+
+                        if (res >= 0) {
+                            n.increaseNbPassage();
+                            n.setNbVictoire(n.getNbVictoire() + res);
+                            finBranche = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (finBranche) {
+                    n.finExploration();
+                }
+
+                return res;
+            }
         }
     }
 
@@ -239,11 +341,11 @@ public class EtatJeu {
         return 0;
     }
 
-    public int simulate(EtatJeu ej) {
-        EtatJeu simul = ej.copy();
+    public int simulate(EtatJeu et) {
+        EtatJeu simul = et.copy();
         int i = 0;
 
-        do {
+         do {
             List<Coup> cps = simul.coupPossible();
             Random rand = new Random();
             int choix = rand.nextInt(cps.size());
