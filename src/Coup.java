@@ -14,4 +14,8 @@ public class Coup {
     public boolean equals(Object obj) {
         return this.colonne == ((Coup)obj).getColonne();
     }
+
+    public Coup copy() {
+        return new Coup(this.colonne);
+    }
 }

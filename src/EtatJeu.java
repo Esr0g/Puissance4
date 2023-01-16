@@ -107,10 +107,12 @@ public class EtatJeu {
                 if ( i + 1 == plateau.length && plateau[i][cp.getColonne()] == ' ') {
                    plateau[i][cp.getColonne()] = (this.joueur == 1) ? 'O' : 'X';
                    joueurSuivant();
+                    this.coupJoue = cp.copy();
                    return true;
                 } else if (plateau[i + 1][cp.getColonne()] != ' ') {
                     plateau[i][cp.getColonne()] = (this.joueur == 1) ? 'O' : 'X';
                     joueurSuivant();
+                    this.coupJoue = cp.copy();
                     return true;
                 }
             }
@@ -120,6 +122,10 @@ public class EtatJeu {
 
     public boolean doitQuitter() {
         return this.quitter;
+    }
+
+    public Coup getCoupJoue() {
+        return this.coupJoue;
     }
 
     public List<Coup> coupPossible() {
@@ -168,7 +174,7 @@ public class EtatJeu {
 
                     //diagonales
                     k = 0;
-                    while ( k < 4 && i + k < plateau.length && j + k < plateau[i].length && plateau[i + k][j + k] == plateau[i][j] ) {
+                    while ( k < 4 && i - k >= 0 && j - k >= 0 && plateau[i - k][j - k] == plateau[i][j] ) {
                         k++;
                     }
                     if ( k == 4 ) {
@@ -177,7 +183,7 @@ public class EtatJeu {
                     }
 
                     k = 0;
-                    while ( k < 4 && i - k >= 0 && j - k >= 0 && plateau[i - k][j - k] == plateau[i][j] ) {
+                    while ( k < 4 && i - k >= 0 && j + k < plateau[i].length && plateau[i - k][j + k] == plateau[i][j] ) {
                         k++;
                     }
                     if ( k == 4 ) {
@@ -225,13 +231,13 @@ public class EtatJeu {
 
         Node racine = new Node(null, this);
 
-        while (currenTime - startTime < 5000) {
+        while (currenTime - startTime < 3000) {
             MCTS_UTC(racine);
             currenTime = System.currentTimeMillis();
         }
 
         System.out.println(racine.getNbPassage());
-        racine.sortMax();
+        racine.sortMeilleurChoix();
 
         this.plateau = racine.getEnfant(0).getEtat().plateau;
         this.joueurSuivant();
@@ -276,23 +282,15 @@ public class EtatJeu {
             if (n.getEtat().joueurJoue()) {
                 // on fait mcts sur min des enfants
                 n.sortMini();
-                int res = -1;
-                boolean finBranche = true;
+                int res = 0;
 
-                for (Node e: n) {
-                    if (e.estExplorable()) {
-                        res = MCTS_UTC(e);
+                Node enf = n.getEnfant(0);
 
-                        if (res >= 0) {
-                            n.increaseNbPassage();
-                            n.setNbVictoire(n.getNbVictoire() + res);
-                            finBranche = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (finBranche) {
+                if (enf.estExplorable()) {
+                    res = MCTS_UTC(enf);
+                    n.increaseNbPassage();
+                    n.setNbVictoire(n.getNbVictoire() + res);
+                } else {
                     n.finExploration();
                 }
 
@@ -300,23 +298,15 @@ public class EtatJeu {
             } else {
                 // on fait mcts sur max des enfants
                 n.sortMax();
-                int res = -1;
-                boolean finBranche = true;
+                int res = 0;
 
-                for (Node e: n) {
-                    if (e.estExplorable()) {
-                        res = MCTS_UTC(e);
+                Node enf = n.getEnfant(0);
 
-                        if (res >= 0) {
-                            n.increaseNbPassage();
-                            n.setNbVictoire(n.getNbVictoire() + res);
-                            finBranche = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (finBranche) {
+                if (enf.estExplorable()) {
+                    res = MCTS_UTC(enf);
+                    n.increaseNbPassage();
+                    n.setNbVictoire(n.getNbVictoire() + res);
+                } else {
                     n.finExploration();
                 }
 

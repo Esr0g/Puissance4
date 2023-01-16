@@ -7,7 +7,7 @@ public class Node implements Iterable<Node> {
     private int joureur;
     // Coup joué par ce joueur pour arriver ici
     private EtatJeu etat;
-    private final Node parent;
+    private Node parent;
     private List<Node> enfants;
     private double nbPassage = 0;
     private double nbVictoire = 0;
@@ -82,6 +82,27 @@ public class Node implements Iterable<Node> {
         });
     }
 
+    public void sortMeilleurChoix() {
+        this.enfants.sort(new Comparator<Node>() {
+            @Override
+            public int compare(Node node, Node t1) {
+                double B1 = node.getMu();
+                double B2 = t1.getMu();
+
+                if (B1 > B2) {
+                    return -1;
+                } else if (B1 < B2) {
+                    return 1;
+                } else {
+                    double p1 = node.getNbPassage();
+                    double p2 = t1.getNbPassage();
+
+                    return -Double.compare(p1, p2);
+                }
+            }
+        });
+    }
+
     public Node getEnfant(int i) {
         return this.enfants.get(i);
     }
@@ -103,7 +124,7 @@ public class Node implements Iterable<Node> {
         if (this.getNbPassage() == 0) {
             return Double.MAX_VALUE;
         } else {
-            return 2 * Math.sqrt(Math.log(this.getParent().getNbPassage()) / this.getNbPassage());
+            return Math.sqrt(2) * Math.sqrt(Math.log(this.getParent().getNbPassage()) / this.getNbPassage());
         }
     }
 
@@ -113,6 +134,20 @@ public class Node implements Iterable<Node> {
         } else {
             return (this.getNbVictoire() / this.getNbPassage());
         }
+    }
+
+    public Node find(Coup cp) {
+
+        for (Node n : enfants) {
+            if (n.getEtat().getCoupJoue().equals(cp)) {
+                return n;
+            }
+        }
+        return null;
+    }
+
+    public void setParent(Node n) {
+        this.parent = n;
     }
 }
 
