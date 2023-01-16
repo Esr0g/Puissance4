@@ -1,9 +1,9 @@
 public class TexteCouleur {
 
-    // Constante pour réinistialiser l'affichage
+    // Constante pour réinitialiser l'affichage
     public static final String ANSI_RESET = "\u001B[0m";
 
-    // Constante qui affiche le texte d'une certaine couleur
+    // Constantes qui affichent le texte d'une certaine couleur
     public static final String ANSI_BLACK = "\u001B[30m";
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_GREEN = "\u001B[32m";

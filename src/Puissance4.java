@@ -4,17 +4,17 @@ import java.util.Random;
 import java.util.Scanner;
 
 // Definition du type Etat (état/position du jeu)
-public class EtatJeu {
+public class Puissance4 {
 
     // Joueur qui doit jouer
     private int joueur;
     private char[][] plateau;
     private boolean quitter = false;
-    private FinDePartie etatFin = FinDePartie.NON;
+    private GameState gameState = GameState.RUNNING;
     // Coup qui a été jouer pour arriver dans cet état
     private Coup coupJoue;
 
-    public EtatJeu(int j) {
+    public Puissance4(int j) {
         this.joueur = j;
         this.plateau = new char[6][7];
         for (int i = 0; i < this.plateau.length; i++) {
@@ -24,8 +24,8 @@ public class EtatJeu {
         }
     }
 
-    public EtatJeu copy() {
-        EtatJeu copie = new EtatJeu(this.joueur);
+    public Puissance4 copy() {
+        Puissance4 copie = new Puissance4(this.joueur);
 
         for (int i = 0 ; i < plateau.length; i++) {
             for (int j = 0; j < plateau[i].length; j++) {
@@ -34,7 +34,7 @@ public class EtatJeu {
         }
 
         copie.quitter = this.quitter;
-        copie.etatFin = this.etatFin;
+        copie.gameState = this.gameState;
         return copie;
     }
 
@@ -71,15 +71,26 @@ public class EtatJeu {
     }
 
     public Coup demanderCoup() {
-        System.out.println("Quelle colonne ?");
+        System.out.println("Quelle colonne ? (Entrer un nombre entre 0 et 6, 10 pour quitter)");
+        int c;
         Scanner scan = new Scanner(System.in);
-        int c = -1;
+        c = scan.nextInt();
 
-        try {
+        // Quitter
+        if (c == 10) {
+            return new Coup(c);
+        }
+
+        // c doit être compris entre 0 et 6 OU égale à 10
+        while (!(c >= 0 && c <= 6)) {
+            System.out.println("Quelle colonne ? (Entrer un nombre entre 0 et 6, 10 pour quitter)");
+            scan = new Scanner(System.in);
             c = scan.nextInt();
-        } catch (Exception e) {
-            System.out.println("Veuillez entrer un nombre entre 0 et 6. (10 pour quitter).");
-            this.demanderCoup();
+
+            // Quitter
+            if (c == 10) {
+                return new Coup(c);
+            }
         }
         return new Coup(c);
     }
@@ -95,23 +106,31 @@ public class EtatJeu {
     public boolean jouerCoup(Coup cp) {
 
         // 10 pour quitter
-        if (cp.getColonne() == 10) {
+        if (cp.getColumn() == 10) {
             this.quitter = true;
             return false;
-        } else if (cp.getColonne() < 0 || cp.getColonne() > 6) {
+
+            //TODO Faire les vérifications dans demanderCoup
+        } else if (cp.getColumn() < 0 || cp.getColumn() > 6) {
             return false;
-        } else if (plateau[0][cp.getColonne()] != ' ') { // Si la colonne est pleine alors, le coups est impossible
+
+        // Si la colonne est pleine alors, le coup est impossible
+        } else if (plateau[0][cp.getColumn()] != ' ') {
             return false;
+
         } else {
+
             for (int i = 0 ; i < plateau.length; i++) {
-                if ( i + 1 == plateau.length && plateau[i][cp.getColonne()] == ' ') {
-                   plateau[i][cp.getColonne()] = (this.joueur == 1) ? 'O' : 'X';
-                   joueurSuivant();
-                    this.coupJoue = cp.copy();
+
+                if ( i + 1 == plateau.length && plateau[i][cp.getColumn()] == ' ') {
+                   plateau[i][cp.getColumn()] = (this.joueur == 1) ? 'O' : 'X';
+                   this.joueurSuivant();
+                   this.coupJoue = cp.copy();
                    return true;
-                } else if (plateau[i + 1][cp.getColonne()] != ' ') {
-                    plateau[i][cp.getColonne()] = (this.joueur == 1) ? 'O' : 'X';
-                    joueurSuivant();
+
+                } else if (plateau[i + 1][cp.getColumn()] != ' ') {
+                    plateau[i][cp.getColumn()] = (this.joueur == 1) ? 'O' : 'X';
+                    this.joueurSuivant();
                     this.coupJoue = cp.copy();
                     return true;
                 }
@@ -158,7 +177,7 @@ public class EtatJeu {
                         k++;
                     }
                     if (k == 4) {
-                        this.etatFin = (plateau[i][j] == 'O') ? FinDePartie.ORDI_GAGNE : FinDePartie.HUMAIN_GAGNE;
+                        this.gameState = (plateau[i][j] == 'O') ? GameState.CPU_WINS : GameState.PLAYER_WINS;
                         return true;
                     }
 
@@ -168,7 +187,7 @@ public class EtatJeu {
                         k++;
                     }
                     if (k == 4) {
-                        this.etatFin = (plateau[i][j] == 'O') ? FinDePartie.ORDI_GAGNE : FinDePartie.HUMAIN_GAGNE;
+                        this.gameState = (plateau[i][j] == 'O') ? GameState.CPU_WINS : GameState.PLAYER_WINS;
                         return true;
                     }
 
@@ -178,7 +197,7 @@ public class EtatJeu {
                         k++;
                     }
                     if ( k == 4 ) {
-                        this.etatFin = plateau[i][j] == 'O'? FinDePartie.ORDI_GAGNE : FinDePartie.HUMAIN_GAGNE;
+                        this.gameState = plateau[i][j] == 'O'? GameState.CPU_WINS : GameState.PLAYER_WINS;
                         return true;
                     }
 
@@ -187,7 +206,7 @@ public class EtatJeu {
                         k++;
                     }
                     if ( k == 4 ) {
-                        this.etatFin = plateau[i][j] == 'O'? FinDePartie.ORDI_GAGNE : FinDePartie.HUMAIN_GAGNE;
+                        this.gameState = plateau[i][j] == 'O'? GameState.CPU_WINS : GameState.PLAYER_WINS;
                         return  true;
                     }
 
@@ -196,28 +215,28 @@ public class EtatJeu {
         }
 
         if (nbcp == 6 * 7) {
-            this.etatFin = FinDePartie.MATCHNUL;
+            this.gameState = GameState.DRAW;
             return true;
         }
 
-        this.etatFin = FinDePartie.NON;
+        this.gameState = GameState.RUNNING;
         return false;
     }
 
     public boolean estTermine() {
-        return (this.etatFin != FinDePartie.NON) || quitter;
+        return (this.gameState != GameState.RUNNING) || quitter;
     }
 
     public String messageFin() {
         if (quitter) {
             return "Vous avez quitter la partie.";
         } else {
-            switch (this.etatFin) {
-                case MATCHNUL:
-                    return "Matche null !";
-                case HUMAIN_GAGNE:
+            switch (this.gameState) {
+                case DRAW:
+                    return "Matche nul !";
+                case PLAYER_WINS:
                     return "Vous avez gagné la partie !";
-                case ORDI_GAGNE:
+                case CPU_WINS:
                     return "Vous avez perdu !";
             }
         }
@@ -266,7 +285,7 @@ public class EtatJeu {
                 List<Coup> cps = n.getEtat().coupPossible();
 
                 for (Coup cp: cps) {
-                    EtatJeu et = n.getEtat().copy();
+                    Puissance4 et = n.getEtat().copy();
                     et.jouerCoup(cp);
                     n.ajouterEnfant(new Node(n, et));
                 }
@@ -320,19 +339,19 @@ public class EtatJeu {
     }
 
     private int evaluate() {
-        switch (this.etatFin) {
-            case ORDI_GAGNE:
+        switch (this.gameState) {
+            case CPU_WINS:
                 return 1;
-            case MATCHNUL:
-            case HUMAIN_GAGNE:
+            case DRAW:
+            case PLAYER_WINS:
                 return 0;
         }
 
         return 0;
     }
 
-    public int simulate(EtatJeu et) {
-        EtatJeu simul = et.copy();
+    public int simulate(Puissance4 et) {
+        Puissance4 simul = et.copy();
         int i = 0;
 
          do {

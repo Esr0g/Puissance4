@@ -1,18 +1,18 @@
 public class Coup {
 
-    private final int colonne;
+    private final int column;
 
     public Coup (int c) {
-        this.colonne = c;
+        this.column = c;
     }
 
-    public int getColonne() {
-        return this.colonne;
+    public int getColumn() {
+        return this.column;
     }
 
     @Override
     public boolean equals(Object obj) {
-        return this.colonne == ((Coup)obj).getColonne();
+        return this.column == ((Coup)obj).getColumn();
     }
 
     public Coup copy() {

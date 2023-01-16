@@ -1,4 +1,3 @@
-import java.math.BigDecimal;
 import java.util.*;
 
 public class Node implements Iterable<Node> {
@@ -6,16 +5,16 @@ public class Node implements Iterable<Node> {
     // Joueur qui a joué pour arriver ici
     private int joureur;
     // Coup joué par ce joueur pour arriver ici
-    private EtatJeu etat;
+    private Puissance4 etat;
     private Node parent;
     private List<Node> enfants;
     private double nbPassage = 0;
     private double nbVictoire = 0;
-    // Par défaut un noeu est explorable mais si toutes ses branche sont une fin de partie
-    // il n'est alors pas nécessaire d'aller dedans
+    // Par défaut un nœud est explorable, mais si toutes ses branches sont une fin de partie
+    // il n'est alors pas nécessaire d'aller dedans.
     private boolean explorable = true;
 
-    public Node(Node parent, EtatJeu etat) {
+    public Node(Node parent, Puissance4 etat) {
         this.parent = parent;
         this.enfants = new ArrayList<>();
         this.etat = etat;
@@ -50,7 +49,7 @@ public class Node implements Iterable<Node> {
         return enfants.iterator();
     }
 
-    public EtatJeu getEtat() {
+    public Puissance4 getEtat() {
         return etat;
     }
 
