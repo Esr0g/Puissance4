@@ -16,6 +16,6 @@ public class Coup {
     }
 
     public Coup copy() {
-        return new Coup(this.colonne);
+        return new Coup(this.column);
     }
 }
