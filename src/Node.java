@@ -129,7 +129,7 @@ public class Node implements Iterable<Node> {
 
     public double getMu() {
         if (this.getNbPassage() == 0) {
-            return Double.MAX_VALUE;
+            return 0;
         } else {
             return (this.getNbVictoire() / this.getNbPassage());
         }

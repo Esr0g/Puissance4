@@ -310,7 +310,11 @@ public class Puissance4 {
                     n.increaseNbPassage();
                     n.setNbVictoire(n.getNbVictoire() + res);
                 } else {
-                    n.finExploration();
+                    res = enf.getEtat().evaluate();
+                    enf.setNbVictoire(enf.getNbVictoire() + res);
+                    enf.increaseNbPassage();
+                    n.increaseNbPassage();
+                    n.setNbVictoire(n.getNbVictoire() + res);
                 }
 
                 return res;
@@ -326,7 +330,11 @@ public class Puissance4 {
                     n.increaseNbPassage();
                     n.setNbVictoire(n.getNbVictoire() + res);
                 } else {
-                    n.finExploration();
+                    res = enf.getEtat().evaluate();
+                    enf.setNbVictoire(enf.getNbVictoire() + res);
+                    enf.increaseNbPassage();
+                    n.increaseNbPassage();
+                    n.setNbVictoire(n.getNbVictoire() + res);
                 }
 
                 return res;
