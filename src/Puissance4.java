@@ -255,7 +255,7 @@ public class Puissance4 {
             currenTime = System.currentTimeMillis();
         }
 
-        System.out.println(racine.getNbPassage());
+        System.out.println("Nombre de simulation : " + racine.getNbPassage());
         racine.sortMeilleurChoix();
 
         this.plateau = racine.getEnfant(0).getEtat().plateau;
