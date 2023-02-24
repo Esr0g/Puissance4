@@ -14,8 +14,13 @@ public class Launcher {
             joueur = scan.nextInt();
         }
         Puissance4 puissance4 = new Puissance4(joueur);
+        boolean debut = true;
 
         do {
+            if (debut) {
+                System.out.println(puissance4.afficher());
+                debut = false;
+            }
             if (puissance4.joueurJoue()) {
                 Coup cp = puissance4.demanderCoup();
                 puissance4.jouerCoup(cp);

@@ -250,7 +250,7 @@ public class Puissance4 {
 
         Node racine = new Node(null, this);
 
-        while (currenTime - startTime < 3000) {
+        while (currenTime - startTime < 50) {
             MCTS_UTC(racine);
             currenTime = System.currentTimeMillis();
         }
